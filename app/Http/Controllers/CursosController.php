@@ -136,4 +136,70 @@ class CursosController extends Controller
         return response()->json($data,200);
     }
 
+
+    public  function updateCurso(Request $request,$id){
+        header('Access-Control-Allow-Origin','*');
+        header('Access-Control-Allow-Methods','*');
+        $json=$request->input('json',null);
+        $params=json_decode($json);
+        //Controlar si el curso no existe....
+        /*
+        Armar el arreglo para actualizar
+        $update->curso=$params->curso;
+        $update->division=$params->division;
+        $update->especialidad=$params->especialidad;
+        $update->modalidad=$params->modalidad;
+        $update->semipresencial=$params->semipresencial;
+        */
+        $curso=Curso::select('*')->where('id',$id)->update($update);
+
+       // dd($curso);
+        $data=array(
+            'curso'=>$curso,
+            'status'=>'success'
+        );
+        return response()->json($data,200);
+    }
+
+    public  function getCurso($curso, $division){
+        header('Access-Control-Allow-Origin','*');
+        header('Access-Control-Allow-Methods','*');
+        $curso=$curso.'°';
+        $curso=Curso::select('*')->where('curso',$curso)->where('division',$division)->get();
+        if(count($curso)==0){
+            $data=array(
+                'message'=>'Curso Inexistente',
+                'status'=>'error'
+            );
+        }else{
+            $data=array(
+                'curso'=>$curso,
+                'status'=>'success'
+            );
+        }
+
+        return response()->json($data,200);
+    }
+
+    public  function getCursoById($id){
+        header('Access-Control-Allow-Origin','*');
+        header('Access-Control-Allow-Methods','*');
+        $curso=Curso::select('*')->where('id',$id)->get();
+        if(count($curso)==0){
+            $data=array(
+                'message'=>'Curso Inexistente',
+                'status'=>'error'
+            );
+        }else{
+            $data=array(
+                'curso'=>$curso,
+                'status'=>'success'
+            );
+        }
+
+        return response()->json($data,200);
+    }
+
+    
+
 }

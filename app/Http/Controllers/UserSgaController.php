@@ -8,6 +8,7 @@ use App\User;
 use App\ValidarDni;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\JwtAuth;
+use App\UserPrecarga; 
 
 class UserSgaController extends Controller
 {
@@ -22,7 +23,6 @@ class UserSgaController extends Controller
         $surname=(!is_null($json))&&isset($params->surname)?$params->surname:null;
         $dni=(!is_null($json))&&isset($params->dni)?$params->dni:null;
 
-        $role='ROLE_USER';
         $password=(!is_null($json))&&isset($params->password)?$params->password:null;
         if(!is_null($email)&&!is_null($password)&&!is_null($name)){
         
@@ -30,10 +30,11 @@ class UserSgaController extends Controller
             $user->email=$email;
             $user->name=$name;
             $user->dni=$dni;
-            $user->role=$role;
             $user->surname=$surname;
             $pwd=hash('sha256',$password);
             $user->password=$pwd;
+            //Por defecto se asigna el role, usuario. Luego el SuperAdmin podrá modificarlo.
+            $user->role_id=3;
            // dd($user);
             //comprobar duplicado
             $isset_user=User::where('email','=',$email)->first();
@@ -96,11 +97,45 @@ class UserSgaController extends Controller
         return response()->json($data,200); 
     }
 
+    public function updateUser(Request $request,$id){
+        header('Access-Control-Allow-Origin', '*');
+        header('Access-Control-Allow-Methods', '*');
+        $json=$request->input('json',null);
+        $params=json_decode($json);
+
+       
+        if(strlen($params->password)!=0){
+            $pwd=hash('sha256',$params->password);
+            $update=array(
+                'name'      =>  $params->name,
+                'surname'   =>  $params->surname,
+                'email'     =>  $params->email,
+                'password'  =>  $pwd
+            );
+        }else{
+            $update=array(
+                'name'      =>  $params->name,
+                'surname'   =>  $params->surname,
+                'email'     =>  $params->email,
+            );
+        };
+
+        $user=User::select('*')->where('id',$id)->update($update);
+
+        
+ 
+        $data=array(
+            'user'=>$user,
+            'update'=>$update,
+            'status'=>'success'
+        );
+        return response()->json($data,200); 
+    }
+
     public function login(Request $request){
         header('Access-Control-Allow-Origin', '*');
         header('Access-Control-Allow-Methods', '*');
 
-//dd($request);
         $jwtAuth=new JwtAuth();
         //Recibir Post
         $json=$request->input('json',null);
@@ -114,15 +149,106 @@ class UserSgaController extends Controller
         if(!is_null($email)&& !is_null($password)&&($getToken==null||$getToken==false)){
            // dd($params);
             $singup=$jwtAuth->singup($email,$pwd);
+            
         }elseif($getToken==true){
             $singup=$jwtAuth->singup($email,$pwd,$getToken);
         }else{
             $singup=array(
-                'message'=>'Envia tus datos por POST',
+                'message'=>'No se pude realizar el login',
                 'status'=>'error',
             );
         }
         return response()->json($singup,200); 
     }
+
+
+    public function getUsers(){
+        header('Access-Control-Allow-Origin', '*');
+        header('Access-Control-Allow-Methods', '*');
+        $users=User::select('*')->get()->load('role');
+        
+        $data=array(
+            'users'=>$users,
+            'status'=>'success'
+        );
+        return response()->json($data,200);
+    }
+
+    public function getUser($id){
+        header('Access-Control-Allow-Origin', '*');
+        header('Access-Control-Allow-Methods', '*');
+        $user=User::select('*')->where('id',$id)->get()->load('role');
+        $data=array(
+            'user'=>$user,
+            'status'=>'success'
+        );
+        return response()->json($data,200);
+    }
+
+    public function precargarUsuario(Request $request){
+        header('Access-Control-Allow-Origin', '*');
+        header('Access-Control-Allow-Methods', '*');
+
+        $json=$request->input('json',null);
+        
+        $params=json_decode($json);
+
+        $repetido=UserPrecarga::select('id')->where('dni',$params->dni)->count();
+       
+        if($repetido==0){
+            $user=new UserPrecarga();
+            
+            $user->dni = $params->dni;
+
+            $user->status =0;
+
+
+            $user->save();
+
+            $data=array(
+                'status'=>'success'
+            );
+
+        }else{
+
+            $data=array(
+                'status'=>'repetido'
+            );
+
+        }
+
+        return response()->json($data,200);
+
+    }
+
+    public function getPrecargados(){
+        header('Access-Control-Allow-Origin', '*');
+        header('Access-Control-Allow-Methods', '*');
+
+        $precargados=UserPrecarga::select('id','dni','status')->orderBy('status')->get();
+
+        $data=array(
+            'precargados'=>$precargados,
+            'status'=>'success'
+        );
+
+        return response()->json($data,200);
+    }
+
+    public function deletePrecargados($id){
+        header('Access-Control-Allow-Origin', '*');
+        header('Access-Control-Allow-Methods', '*');
+
+        $precargado=UserPrecarga::select('*')->where('id',$id)->delete();
+
+        $data=array(
+            'message'=>'precarga eliminada',
+            'status'=>'success'
+        );
+        return response()->json($data,200);
+    }
+
+
+
   
 }
