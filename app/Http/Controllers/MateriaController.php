@@ -64,9 +64,7 @@ class MateriaController extends Controller
                 'status'=>'success'
             );
         }
-
         return response()->json($data,200);
-
     }
 
     public function updateMateria(Request $request, $id){

@@ -8,6 +8,8 @@ use App\CursoDivision;
 use App\CursoEspecialidad;
 use App\CursoModalidad;
 use App\CursoNumero;
+use App\Materia;
+use App\Nota; 
 
 class CursosController extends Controller
 {
@@ -199,6 +201,31 @@ class CursosController extends Controller
 
         return response()->json($data,200);
     }
+
+    public function deleteCurso($id){
+        header('Access-Control-Allow-Origin','*');
+        header('Access-Control-Allow-Methods','*');
+        $curso=Curso::select('*')->where('id',$id)->delete();
+        $data=array(
+            'message'=>'Curso eliminado',
+            'status'=>'success'
+        );
+        return response()->json($data,200);
+    }
+
+
+    public function materiasPorCurso($id){
+        header('Access-Control-Allow-Origin','*');
+        header('Access-Control-Allow-Methods','*');
+        $materias=Materia::select('*')->where('id_curso',$id)->get();
+        $data=array(
+            'materias'=>$materias,
+            'status'=>'success'
+        );
+        return response()->json($data,200);
+    }
+
+
 
     
 

@@ -36,7 +36,10 @@ Route::group(['prefix'=>'usuarios'],function(){
 Route::group(['prefix'=>'alumnos'],function(){
     Route::get('/listado','AlumnosController@getAlumnos');
     Route::get('/{id}','AlumnosController@getAlumno');
+    Route::get('/notas/{id}','AlumnosController@getNotas');
     Route::post('/inscribir','AlumnosController@inscribirAlumno');
+    Route::get('/historico-inscripciones/{dni}','AlumnosController@getInscripciones');
+    Route::put('/reinscribir/{id_alumno}/{id_curso}','AlumnosController@reinscribir');
 });
 
 Route::group(['prefix'=>'cursos'],function(){
@@ -49,7 +52,8 @@ Route::group(['prefix'=>'cursos'],function(){
     Route::put('/update/{id}','CursosController@updateCurso');
     Route::get('/consultar/{curso}/{division}','CursosController@getCurso');
     Route::get('/consultar/{id}','CursosController@getCursoById');  
-  
+    Route::delete('/delete/{id}','CursosController@deleteCurso');  
+    Route::get('/materias-curso/{id_curso}','CursosController@materiasPorCurso');
 });
 
 Route::group(['prefix'=>'materias'],function(){
@@ -59,3 +63,10 @@ Route::group(['prefix'=>'materias'],function(){
     Route::put('/update/{id}','MateriaController@updateMateria');
     Route::delete('/delete/{id}','MateriaController@deleteMateria');
 });
+
+Route::group(['prefix'=>'notas'],function(){
+    Route::get('/{id}','NotasController@getNotas');
+    Route::put('/insertar-nota','NotasController@insertarNota');
+});
+
+
